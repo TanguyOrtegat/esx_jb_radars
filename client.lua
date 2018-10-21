@@ -10,40 +10,62 @@ local Keys = {
   ["NENTER"] = 201, ["N4"] = 108, ["N5"] = 60, ["N6"] = 107, ["N+"] = 96, ["N-"] = 97, ["N7"] = 117, ["N8"] = 61, ["N9"] = 118
 }
 
-ESX				= nil
-RadarBlip		= {}
-HasAlreadyEnteredMarker = false
+ESX = nil
+local RadarBlip = {}
+local LoadedPropList = {}
+local HasAlreadyEnteredMarker = false
+
 Citizen.CreateThread(function()
 	while ESX == nil do
 		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 		Citizen.Wait(0)
 	end
-  	for k, v in pairs(Config.Radars) do
-		--radar
-		RequestModel("prop_cctv_pole_01a")
-		while not HasModelLoaded("prop_cctv_pole_01a") do
-		Wait(1)
-		end
 
-		Radar = CreateObject(GetHashKey('prop_cctv_pole_01a'), v.x,v.y,v.z-7, true, true, true) -- http://gtan.codeshock.hu/objects/index.php?page=1&search=prop_cctv_pole_01a
-		SetObjectTargettable(Radar, true)
-		SetEntityHeading(Radar, v.heading-115)
-		SetEntityAsMissionEntity(Radar, true, true)
-		FreezeEntityPosition(Radar, true)
+	LoadRadarProps()
+end)
+
+-- create radar props
+function LoadRadarProps()
+	local propName = 'prop_cctv_pole_01a'
+	RequestModel(propName)
+	while not HasModelLoaded(propName) do
+		Citizen.Wait(100)
+	end
+
+	for k, v in pairs(Config.Radars) do
+		local radar = CreateObject(GetHashKey(propName), v.x, v.y, v.z - 7, true, true, true)
+
+		SetObjectTargettable(radar, true)
+		SetEntityHeading(radar, v.heading - 115)
+		SetEntityAsMissionEntity(radar, true, true)
+		FreezeEntityPosition(radar, true)
+
+		table.insert(LoadedPropList, radar)
+	end
+end
+
+function UnloadRadarProps()
+	for k, v in pairs(LoadedPropList) do
+		DeleteEntity(v)
+	end
+end
+
+AddEventHandler('onResourceStop', function(resource)
+	if resource == GetCurrentResourceName() then
+		UnloadRadarProps()
 	end
 end)
 
 RegisterNetEvent('esx_jb_radars:ShowRadarBlip')
 AddEventHandler('esx_jb_radars:ShowRadarBlip', function()
-	
 	for k, v in pairs(Config.Radars) do
-		--blip
 		RadarBlip[k] = AddBlipForCoord(v.x,v.y,v.z)
 		SetBlipColour(RadarBlip[k], 69)
 		SetBlipScale(RadarBlip[k], 0.8)
 		SetBlipAsShortRange(RadarBlip[k], true)
+
 		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString("Cam: " ..k.." ("..v.maxspeed..")")
+		AddTextComponentString(('Cam: %s (%s)'):format(k, v.maxSpeed))
 		EndTextCommandSetBlipName(RadarBlip[k])
 		-- SetBlipFlashTimer(RadarBlip[k], 10000)
 	end
@@ -51,20 +73,7 @@ end)
 
 RegisterNetEvent('esx_jb_radars:ShowRadarProp')
 AddEventHandler('esx_jb_radars:ShowRadarProp', function()
-	
-	for k, v in pairs(Config.Radars) do
-		--radar
-		RequestModel("prop_cctv_pole_01a")
-		while not HasModelLoaded("prop_cctv_pole_01a") do
-		Wait(1)
-		end
-
-		Radar = CreateObject(GetHashKey('prop_cctv_pole_01a'), v.x,v.y,v.z-7, true, true, true) -- http://gtan.codeshock.hu/objects/index.php?page=1&search=prop_cctv_pole_01a
-		SetObjectTargettable(Radar, true)
-		SetEntityHeading(Radar, v.heading-115)
-		SetEntityAsMissionEntity(Radar, true, true)
-		FreezeEntityPosition(Radar, true)
-	end
+	LoadRadarProps()
 end)
 
 RegisterNetEvent('esx_jb_radars:RemoveRadarBlip')
@@ -74,34 +83,36 @@ AddEventHandler('esx_jb_radars:RemoveRadarBlip', function()
 	end
 end)
 
-local lastradar = nil
+local lastRadar = nil
 -- Determines if player is close enough to trigger cam
-function HandleSpeedcam(speedcam, hasBeenFucked)
+function HandlespeedCam(speedCam, hasBeenBusted)
 	local myPed = GetPlayerPed(-1)
 	local playerPos = GetEntityCoords(myPed)
 	local isInMarker  = false
-	-- DrawMarker(1, speedcam.x, speedcam.y, speedcam.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 30.0, 30.0,1.0, 255.0, 0.0, 0.0, 100, false, true, 2, false, false, false, false)	
-	if (GetDistanceBetweenCoords(playerPos, speedcam.x, speedcam.y, speedcam.z, true) < Config.SpeedCamRange) then
+
+	-- DrawMarker(1, speedCam.x, speedCam.y, speedCam.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 30.0, 30.0,1.0, 255.0, 0.0, 0.0, 100, false, true, 2, false, false, false, false)
+	if GetDistanceBetweenCoords(playerPos, speedCam.x, speedCam.y, speedCam.z, true) < Config.speedCamRange then
 		isInMarker  = true
 	end
-	if isInMarker and not HasAlreadyEnteredMarker and lastradar==nil then
+
+	if isInMarker and not HasAlreadyEnteredMarker and lastRadar==nil then
 		HasAlreadyEnteredMarker = true
-		lastradar = hasBeenFucked
+		lastRadar = hasBeenBusted
 
 		local vehicle = GetPlayersLastVehicle() -- gets the current vehicle the player is in.
-		if (vehicle ~=nil) then
-			if GetPedInVehicleSeat( vehicle, -1 ) == myPed then
+		if IsPedInAnyVehicle(myPed, false) then
+			if GetPedInVehicleSeat(vehicle, -1) == myPed then
 				if GetVehicleClass(vehicle) ~= 18 then
-					local vehicleProps  = ESX.Game.GetVehicleProperties(vehicle)
-					local numberplate = GetVehicleNumberPlateText(vehicle)
+					local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+					local numberPlate = vehicleProps.plate
 					local driver = GetPedInVehicleSeat(vehicle, -1)
-					local name = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+					-- local name = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
 					-- ESX.TriggerServerCallback('esx_jb_radars:checkvehicle',function(valid)
 						-- if(valid) then
-							local kmhspeed = math.ceil(GetEntitySpeed(vehicle)* 3.6)
-							if (tonumber(kmhspeed) > tonumber(speedcam.maxspeed)) then
+							local kmhSpeed = math.ceil(GetEntitySpeed(vehicle)* 3.6)
+							if (tonumber(kmhSpeed) > tonumber(speedCam.maxSpeed)) then
 								local fine = 0
-								local TooMuchSpeed = tonumber(kmhspeed) - tonumber(speedcam.maxspeed)
+								local TooMuchSpeed = tonumber(kmhSpeed) - tonumber(speedCam.maxSpeed)
 								if TooMuchSpeed >= 25 and TooMuchSpeed <= 50 then
 									fine =200 + (TooMuchSpeed*Config.KmhFine)
 								elseif TooMuchSpeed > 50 and TooMuchSpeed <= 100 then
@@ -117,8 +128,8 @@ function HandleSpeedcam(speedcam, hasBeenFucked)
 								end
 								if fine ~= 0 then
 									SetTimeout(60000, function()
-										-- TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(PlayerId()), 'society_police', "Radar fixe: amende vitesse "..kmhspeed.."km/h a la place de "..speedcam.maxspeed, fine) 
-										TriggerServerEvent('esx_jb_radars:PayFine',GetPlayerServerId(PlayerId()), numberplate, kmhspeed, speedcam.maxspeed, fine)
+										-- TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(PlayerId()), 'society_police', "Radar fixe: amende vitesse "..kmhSpeed.."km/h a la place de "..speedCam.maxSpeed, fine) 
+										TriggerServerEvent('esx_jb_radars:PayFine',GetPlayerServerId(PlayerId()), numberPlate, kmhSpeed, speedCam.maxSpeed, fine)
 									end)
 								end
 							end
@@ -126,54 +137,21 @@ function HandleSpeedcam(speedcam, hasBeenFucked)
 					-- end,vehicleProps)
 				end
 			end
-
 		end
 	end
 		
-	if not isInMarker and HasAlreadyEnteredMarker and lastradar==hasBeenFucked then
+	if not isInMarker and HasAlreadyEnteredMarker and lastRadar==hasBeenBusted then
 		HasAlreadyEnteredMarker = false
-		lastradar=nil
+		lastRadar = nil
 	end
 end
 
--- -----------------------------------------------------------------------
--- ---------------------Threads-------------------------------------------
--- -----------------------------------------------------------------------
-
--- Thread to loop speedcams
 Citizen.CreateThread(function()
-  while true do
-    Wait(0)
-    for key, value in pairs(Config.Radars) do
-      HandleSpeedcam(value, key)
+	while true do
+		Citizen.Wait(1)
 
-    end
-  end
+		for key, value in pairs(Config.Radars) do
+			HandlespeedCam(value, key)
+		end
+	end
 end)
-
-
-function dump(o, nb)
-  if nb == nil then
-    nb = 0
-  end
-   if type(o) == 'table' then
-      local s = ''
-      for i = 1, nb + 1, 1 do
-        s = s .. "    "
-      end
-      s = '{\n'
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-          for i = 1, nb, 1 do
-            s = s .. "    "
-          end
-         s = s .. '['..k..'] = ' .. dump(v, nb + 1) .. ',\n'
-      end
-      for i = 1, nb, 1 do
-        s = s .. "    "
-      end
-      return s .. '}'
-   else
-      return tostring(o)
-   end
-end
