@@ -91,7 +91,7 @@ function HandlespeedCam(speedCam, hasBeenBusted)
 	local isInMarker  = false
 
 	-- DrawMarker(1, speedCam.x, speedCam.y, speedCam.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 30.0, 30.0,1.0, 255.0, 0.0, 0.0, 100, false, true, 2, false, false, false, false)
-	if GetDistanceBetweenCoords(playerPos, speedCam.x, speedCam.y, speedCam.z, true) < Config.speedCamRange then
+	if GetDistanceBetweenCoords(playerPos, speedCam.x, speedCam.y, speedCam.z, true) < Config.SpeedCamRange then
 		isInMarker  = true
 	end
 
