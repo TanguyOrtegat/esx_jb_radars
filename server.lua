@@ -45,7 +45,7 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 	}, function (result)
 		if result[1] ~= nil then
 
-			local identifier = result[i].owner
+			local identifier = result[1].owner
 			MySQL.Async.execute('INSERT INTO billing (identifier, sender, target_type, target, label, amount) VALUES (@identifier, @sender, @target_type, @target, @label, @amount)',
 			{
 				['@identifier']  = identifier,
