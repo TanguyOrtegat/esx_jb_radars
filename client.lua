@@ -14,6 +14,7 @@ ESX = nil
 local RadarBlip = {}
 local LoadedPropList = {}
 local HasAlreadyEnteredMarker = false
+local resource = esx_jb_radars
 
 Citizen.CreateThread(function()
 	while ESX == nil do
