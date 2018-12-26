@@ -1,11 +1,11 @@
 
 client_script { 
-	"client.lua",
+	"esx_jb_radars_cl.lua",
 	"config.lua"
 }
 	
 server_scripts {
 	"@mysql-async/lib/MySQL.lua",
-	"server.lua",
+	"esx_jb_radars_sv.lua",
 	"config.lua"
 }
