@@ -23,12 +23,9 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 	local color = Config.orange
 	local title = ""
 	local speed = kmhSpeed - maxSpeed
-	print('test')
-	print("'"..plate.."'")
 	MySQL.Async.fetchAll('SELECT * FROM owned_vehicles WHERE @plate = plate', {
 		['@plate'] = plate
 	}, 	function (result)
-	print(dump(result))
 		if result[1] ~= nil then
 			title = 'Vehicule personel'
 			local identifier = result[1].owner
@@ -93,11 +90,6 @@ AddEventHandler('esx:onRemoveInventoryItem', function(source, item, count)
 end)
 
 function sendToDiscord(name,message,text,color)
-print(name)
-print(message)
-print(text)
-print(color)
-
 	local DiscordWebHook = Config.webhook
 	-- Modify here your discordWebHook username = name, content = message,embeds = embeds
 
