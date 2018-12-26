@@ -3,8 +3,7 @@ ESX = nil
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 local jobplates = {}
 
--- AddEventHandler('onMySQLReady', function ()
-Citizen.CreateThread(function()
+AddEventHandler('onMySQLReady', function ()
   MySQL.Async.fetchAll(
 	"SELECT name FROM jobs", {},	function(result)
 		
