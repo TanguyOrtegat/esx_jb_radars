@@ -1,6 +1,16 @@
 Config = {}
-Config.SpeedCamRange = 17
-Config.KmhFine = 10
+Config.green 				  		= 56108
+Config.grey 				  		= 8421504
+Config.red 					  		= 16711680
+Config.orange 						= 16744192
+Config.blue 				  		= 2061822
+Config.purple 			 			= 11750815
+Config.SpeedCamRange 				= 17
+Config.KmhFine 						= 10
+Config.ShowRadarProps 				= true
+Config.MinWaitTimeBeforeGivingFine 	= 1 --in seconds
+Config.MaxWaitTimeBeforeGivingFine 	= 2 --in seconds
+Config.webhook = "" --webhook 
 
 Config.Radars = {
 	{x = -623.44421386719, y = -823.08361816406, z = 25.25704574585, maxSpeed = 80.0, heading = 145.0 },

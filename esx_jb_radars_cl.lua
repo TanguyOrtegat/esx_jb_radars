@@ -11,18 +11,16 @@ local Keys = {
 }
 
 ESX = nil
-local RadarBlip = {}
 local LoadedPropList = {}
-local HasAlreadyEnteredMarker = false
-local resource = "esx_jb_radars"
 
 Citizen.CreateThread(function()
 	while ESX == nil do
 		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 		Citizen.Wait(0)
 	end
-
-	LoadRadarProps()
+	if Config.ShowRadarProps then
+		LoadRadarProps()
+	end
 end)
 
 -- create radar props
@@ -59,16 +57,8 @@ end)
 
 RegisterNetEvent('esx_jb_radars:ShowRadarBlip')
 AddEventHandler('esx_jb_radars:ShowRadarBlip', function()
-	for k, v in pairs(Config.Radars) do
-		RadarBlip[k] = AddBlipForCoord(v.x,v.y,v.z)
-		SetBlipColour(RadarBlip[k], 69)
-		SetBlipScale(RadarBlip[k], 0.8)
-		SetBlipAsShortRange(RadarBlip[k], true)
-
-		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString(('Cam: %s (%s)'):format(k, v.maxSpeed))
-		EndTextCommandSetBlipName(RadarBlip[k])
-		-- SetBlipFlashTimer(RadarBlip[k], 10000)
+	for k,v in pairs (Config.Radars) do
+		exports.ft_libs:ShowBlip("esx_jb_radars_blip_"..k)
 	end
 end)
 
@@ -79,80 +69,115 @@ end)
 
 RegisterNetEvent('esx_jb_radars:RemoveRadarBlip')
 AddEventHandler('esx_jb_radars:RemoveRadarBlip', function()
-	for k, v in pairs(Config.Radars) do
-		RemoveBlip(RadarBlip[k])
+	for k,v in pairs (Config.Radars) do
+		exports.ft_libs:HideBlip("esx_jb_radars_blip_"..k)
 	end
 end)
 
 local lastRadar = nil
 -- Determines if player is close enough to trigger cam
-function HandlespeedCam(speedCam, hasBeenBusted)
-	local myPed = GetPlayerPed(-1)
-	local playerPos = GetEntityCoords(myPed)
-	local isInMarker  = false
-
-	-- DrawMarker(1, speedCam.x, speedCam.y, speedCam.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 30.0, 30.0,1.0, 255.0, 0.0, 0.0, 100, false, true, 2, false, false, false, false)
-	if GetDistanceBetweenCoords(playerPos, speedCam.x, speedCam.y, speedCam.z, true) < Config.SpeedCamRange then
-		isInMarker  = true
+function HandlespeedCam(kmhSpeed, maxSpeed, Plate, vehicleModel, radarStreet)
+	local fine = 0
+	local TooMuchSpeed = tonumber(kmhSpeed) - tonumber(maxSpeed)
+	if TooMuchSpeed >= 25 and TooMuchSpeed <= 50 then
+		fine =200 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 50 and TooMuchSpeed <= 100 then
+		fine =250 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 100 and TooMuchSpeed <= 125 then
+		fine =300 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 125 and TooMuchSpeed <= 150 then
+		fine =400 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 150 and TooMuchSpeed <= 175 then
+		fine =450 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 175 then
+		fine =500 + (TooMuchSpeed*Config.KmhFine)
 	end
-
-	if isInMarker and not HasAlreadyEnteredMarker and lastRadar==nil then
-		HasAlreadyEnteredMarker = true
-		lastRadar = hasBeenBusted
-
-		local vehicle = GetPlayersLastVehicle() -- gets the current vehicle the player is in.
-		if IsPedInAnyVehicle(myPed, false) then
-			if GetPedInVehicleSeat(vehicle, -1) == myPed then
-				if GetVehicleClass(vehicle) ~= 18 then
-					local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-					local numberPlate = vehicleProps.plate
-					local driver = GetPedInVehicleSeat(vehicle, -1)
-					-- local name = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
-					-- ESX.TriggerServerCallback('esx_jb_radars:checkvehicle',function(valid)
-						-- if(valid) then
-							local kmhSpeed = math.ceil(GetEntitySpeed(vehicle)* 3.6)
-							if (tonumber(kmhSpeed) > tonumber(speedCam.maxSpeed)) then
-								local fine = 0
-								local TooMuchSpeed = tonumber(kmhSpeed) - tonumber(speedCam.maxSpeed)
-								if TooMuchSpeed >= 25 and TooMuchSpeed <= 50 then
-									fine =200 + (TooMuchSpeed*Config.KmhFine)
-								elseif TooMuchSpeed > 50 and TooMuchSpeed <= 100 then
-									fine =250 + (TooMuchSpeed*Config.KmhFine)
-								elseif TooMuchSpeed > 100 and TooMuchSpeed <= 125 then
-									fine =300 + (TooMuchSpeed*Config.KmhFine)
-								elseif TooMuchSpeed > 125 and TooMuchSpeed <= 150 then
-									fine =400 + (TooMuchSpeed*Config.KmhFine)
-								elseif TooMuchSpeed > 150 and TooMuchSpeed <= 175 then
-									fine =450 + (TooMuchSpeed*Config.KmhFine)
-								elseif TooMuchSpeed > 175 then
-									fine =500 + (TooMuchSpeed*Config.KmhFine)
-								end
-								if fine ~= 0 then
-									SetTimeout(60000, function()
-										-- TriggerServerEvent('esx_billing:sendBill', GetPlayerServerId(PlayerId()), 'society_police', "Radar fixe: amende vitesse "..kmhSpeed.."km/h a la place de "..speedCam.maxSpeed, fine) 
-										TriggerServerEvent('esx_jb_radars:PayFine',GetPlayerServerId(PlayerId()), numberPlate, kmhSpeed, speedCam.maxSpeed, fine)
-									end)
-								end
-							end
-						-- end
-					-- end,vehicleProps)
-				end
-			end
-		end
-	end
-		
-	if not isInMarker and HasAlreadyEnteredMarker and lastRadar==hasBeenBusted then
-		HasAlreadyEnteredMarker = false
-		lastRadar = nil
+	if TooMuchSpeed >= 25 then
+		SetTimeout(math.random(Config.MinWaitTimeBeforeGivingFine*1000, Config.MaxWaitTimeBeforeGivingFine*1000), function()
+			TriggerServerEvent('esx_jb_radars:PayFine',GetPlayerServerId(PlayerId()), Plate, kmhSpeed, maxSpeed, fine, vehicleModel, radarStreet)
+		end)
 	end
 end
 
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1)
-
-		for key, value in pairs(Config.Radars) do
-			HandlespeedCam(value, key)
-		end
+local highspeed = 0
+local numberPlate = ""
+local model = ""
+local street1 = ""
+RegisterNetEvent("ft_libs:OnClientReady")
+AddEventHandler('ft_libs:OnClientReady', function()
+	for k,v in pairs (Config.Radars) do
+		exports.ft_libs:AddBlip("esx_jb_radars_blip_"..k, {
+			x = v.x,
+			y = v.y,
+			z = v.z,
+			text = ('Radar fixe: %s (%s)'):format(k, v.maxSpeed),
+			enable = false
+		})
+		exports.ft_libs:AddArea("esx_jb_radars_"..k, {
+			trigger = {
+				weight = Config.SpeedCamRange,
+				active = {
+					callback = function()
+						local myPed = GetPlayerPed(-1)
+						local vehicle = GetPlayersLastVehicle()
+						if IsPedInAnyVehicle(myPed, false) then
+							if GetPedInVehicleSeat(vehicle, -1) == myPed then
+								if GetVehicleClass(vehicle) ~= 18 then
+								local kmhSpeed = math.ceil(GetEntitySpeed(vehicle)* 3.6)
+								numberPlate = GetVehicleNumberPlateText(vehicle)
+								local s1, s2 = Citizen.InvokeNative( 0x2EB41072B4C1E4C0,v.x, v.y, v.z, Citizen.PointerValueInt(), Citizen.PointerValueInt() )
+								street1 = GetStreetNameFromHashKey(s1)
+								model = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+									if (tonumber(kmhSpeed) > tonumber(v.maxSpeed)) and (tonumber( highspeed) < tonumber(kmhSpeed)) then
+										highspeed = kmhSpeed
+									end
+								end
+							end
+						end
+					end,
+				},
+				exit = {
+					callback = function()
+						if highspeed ~= 0 then
+							HandlespeedCam(highspeed, v.maxSpeed, numberPlate, model, street1)
+							highspeed = 0
+						end
+					end,
+				},
+			},
+			locations = {
+				{
+					x = v.x,
+					y = v.y,
+					z = v.z,
+				}
+			},
+		})
 	end
 end)
+
+function dump(o, nb)
+  if nb == nil then
+    nb = 0
+  end
+   if type(o) == 'table' then
+      local s = ''
+      for i = 1, nb + 1, 1 do
+        s = s .. "    "
+      end
+      s = '{\n'
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+          for i = 1, nb, 1 do
+            s = s .. "    "
+          end
+         s = s .. '['..k..'] = ' .. dump(v, nb + 1) .. ',\n'
+      end
+      for i = 1, nb, 1 do
+        s = s .. "    "
+      end
+      return s .. '}'
+   else
+      return tostring(o)
+   end
+end
