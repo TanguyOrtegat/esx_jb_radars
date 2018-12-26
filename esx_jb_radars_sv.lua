@@ -35,7 +35,7 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 				['@sender']      = "Radar fixe",
 				['@target_type'] = 'society',
 				['@target']      = 'society_police',
-				['@label']       = ("ðŸ“¸:plaque %s, %s km/h a la place de %s"):format(plate, kmhSpeed, maxSpeed),
+				['@label']       = ("📸 :plaque %s, %s km/h a la place de %s"):format(plate, kmhSpeed, maxSpeed),
 				['@amount']      = amount
 			}, function(rowsChanged)
 				TriggerClientEvent('esx:showNotification', _source, "Votre voiture a été flashé.")
@@ -49,7 +49,7 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 				['@sender']      = "Radar fixe",
 				['@target_type'] = 'society',
 				['@target']      = 'society_police',
-				['@label']       = 📸 ..":plaque société "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
+				['@label']       = "📸 :plaque société "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
 				['@amount']      = amount
 			}, function(rowsChanged)
 				TriggerClientEvent('esx:showNotification', _source, "Votre voiture de société a été flashé.")
