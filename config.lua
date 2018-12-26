@@ -8,8 +8,8 @@ Config.purple 			 			= 11750815
 Config.SpeedCamRange 				= 17
 Config.KmhFine 						= 10
 Config.ShowRadarProps 				= true
-Config.MinWaitTimeBeforeGivingFine 	= 1 --in seconds
-Config.MaxWaitTimeBeforeGivingFine 	= 2 --in seconds
+Config.MinWaitTimeBeforeGivingFine 	= 45 --in seconds
+Config.MaxWaitTimeBeforeGivingFine 	= 75 --in seconds
 Config.webhook = "" --webhook 
 
 Config.Radars = {
