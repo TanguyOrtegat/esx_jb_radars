@@ -38,7 +38,7 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 				['@label']       = ("ðŸ“¸:plaque %s, %s km/h a la place de %s"):format(plate, kmhSpeed, maxSpeed),
 				['@amount']      = amount
 			}, function(rowsChanged)
-				TriggerClientEvent('esx:showNotification', _source, "Votre voiture a Ã©tÃ© flashÃ©e.")
+				TriggerClientEvent('esx:showNotification', _source, "Votre voiture a été flashé.")
 			end)
 
 		elseif jobplates[platePrefix] then
@@ -49,10 +49,10 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 				['@sender']      = "Radar fixe",
 				['@target_type'] = 'society',
 				['@target']      = 'society_police',
-				['@label']       = "ðŸ“¸:plaque sociÃ©tÃ© "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
+				['@label']       = 📸 ..":plaque société "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
 				['@amount']      = amount
 			}, function(rowsChanged)
-				TriggerClientEvent('esx:showNotification', _source, "Votre voiture de sociÃ©tÃ© a Ã©tÃ© flashÃ©e.")
+				TriggerClientEvent('esx:showNotification', _source, "Votre voiture de société a été flashé.")
 			end)
 		else
 			title = 'Vehicule inconnu'
@@ -73,9 +73,10 @@ ESX.RegisterUsableItem('coyotte', function(source)
 	if not IsEnabled then
 		IsEnabled  = true
 		TriggerClientEvent('esx_jb_radars:ShowRadarBlip', source)
-		TriggerClientEvent('esx:ShowNotification',source, "Tu as activÃ© ton coyotte.")
+		TriggerClientEvent('esx:ShowNotification',source, "Ton coyotte est activé.")
 	else
 		TriggerClientEvent('esx_jb_radars:RemoveRadarBlip', source)
+		TriggerClientEvent('esx:showNotification', source, "Ton coyotte est désactivé.")
 		IsEnabled = false
 	end
 end)
@@ -85,7 +86,7 @@ AddEventHandler('esx:onRemoveInventoryItem', function(source, item, count)
 	if item.name ~= nil and item.name == 'coyotte' and item.count == 0 then
 		IsEnabled = false
 		TriggerClientEvent('esx_jb_radars:RemoveRadarBlip', source)
-		-- TriggerClientEvent('esx:showNotification', source, "Ton coyotte est dÃ©sactivÃ©.")
+		TriggerClientEvent('esx:showNotification', source, "Ton coyotte est désactivé.")
 	end
 end)
 
