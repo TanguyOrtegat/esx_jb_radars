@@ -1,10 +1,7 @@
 {
-  "version":"2.0.0",
+  "version":"2.0.1",
   "patchnote" : [
-    "- code optimalisation",
-    "- radar for owned vehicles but for society vehicles too",
-    "- loads automaticly jobplates from table jobs",
-    "- config everything in config file",
-    "- added webhook",
+    "- global fixes",
+    "- added french sound when appoching radars (if having the coyotteitem enabled)"
   ]
 }

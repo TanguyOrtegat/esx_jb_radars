@@ -23,6 +23,8 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 	local color = Config.orange
 	local title = ""
 	local speed = kmhSpeed - maxSpeed
+	local firstjob = string.upper(string.sub(xPlayer.job.name, 0, 4))
+	
 	MySQL.Async.fetchAll('SELECT * FROM owned_vehicles WHERE @plate = plate', {
 		['@plate'] = plate
 	}, 	function (result)
@@ -35,7 +37,7 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 				['@sender']      = "Radar fixe",
 				['@target_type'] = 'society',
 				['@target']      = 'society_police',
-				['@label']       = ("📸 :plaque %s, %s km/h a la place de %s"):format(plate, kmhSpeed, maxSpeed),
+				['@label']       = ("📸:plaque %s, %s km/h a la place de %s"):format(plate, kmhSpeed, maxSpeed),
 				['@amount']      = amount
 			}, function(rowsChanged)
 				TriggerClientEvent('esx:showNotification', _source, "Votre voiture a été flashé.")
@@ -43,17 +45,19 @@ AddEventHandler('esx_jb_radars:PayFine', function(source, plate, kmhSpeed, maxSp
 
 		elseif jobplates[platePrefix] then
 			title = 'Vehicule société'
-			MySQL.Async.execute('INSERT INTO billing (identifier, sender, target_type, target, label, amount) VALUES (@identifier, @sender, @target_type, @target, @label, @amount)',
-			{
-				['@identifier']  = xPlayer.identifier,
-				['@sender']      = "Radar fixe",
-				['@target_type'] = 'society',
-				['@target']      = 'society_police',
-				['@label']       = "📸 :plaque société "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
-				['@amount']      = amount
-			}, function(rowsChanged)
-				TriggerClientEvent('esx:showNotification', _source, "Votre voiture de société a été flashé.")
-			end)
+			if firstjob == platePrefix then
+				MySQL.Async.execute('INSERT INTO billing (identifier, sender, target_type, target, label, amount) VALUES (@identifier, @sender, @target_type, @target, @label, @amount)',
+				{
+					['@identifier']  = xPlayer.identifier,
+					['@sender']      = "Radar fixe",
+					['@target_type'] = 'society',
+					['@target']      = 'society_police',
+					['@label']       = "📸:plaque société "..plate..", "..kmhSpeed.."km/h a la place de "..maxSpeed,
+					['@amount']      = amount
+				}, function(rowsChanged)
+					TriggerClientEvent('esx:showNotification', _source, "Votre voiture de société a été flashé.")
+				end)
+			end
 		else
 			title = 'Vehicule inconnu'
 		end

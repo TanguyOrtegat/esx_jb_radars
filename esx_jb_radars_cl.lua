@@ -12,6 +12,8 @@ local Keys = {
 
 ESX = nil
 local LoadedPropList = {}
+local coyottestate = false
+local inmarker = false
 
 Citizen.CreateThread(function()
 	while ESX == nil do
@@ -57,10 +59,17 @@ end)
 
 RegisterNetEvent('esx_jb_radars:ShowRadarBlip')
 AddEventHandler('esx_jb_radars:ShowRadarBlip', function()
+	coyottestate = true
 	for k,v in pairs (Config.Radars) do
 		exports.ft_libs:ShowBlip("esx_jb_radars_blip_"..k)
 	end
 end)
+RegisterCommand("show", function(source, args, raw)
+		coyottestate = true
+	for k,v in pairs (Config.Radars) do
+		exports.ft_libs:ShowBlip("esx_jb_radars_blip_"..k)
+	end 
+end, false)
 
 RegisterNetEvent('esx_jb_radars:ShowRadarProp')
 AddEventHandler('esx_jb_radars:ShowRadarProp', function()
@@ -69,10 +78,17 @@ end)
 
 RegisterNetEvent('esx_jb_radars:RemoveRadarBlip')
 AddEventHandler('esx_jb_radars:RemoveRadarBlip', function()
+	coyottestate = false
 	for k,v in pairs (Config.Radars) do
 		exports.ft_libs:HideBlip("esx_jb_radars_blip_"..k)
 	end
 end)
+RegisterCommand("hide", function(source, args, raw)
+		coyottestate = false
+	for k,v in pairs (Config.Radars) do
+		exports.ft_libs:HideBlip("esx_jb_radars_blip_"..k)
+	end
+end, false)
 
 local lastRadar = nil
 -- Determines if player is close enough to trigger cam
@@ -80,17 +96,17 @@ function HandlespeedCam(kmhSpeed, maxSpeed, Plate, vehicleModel, radarStreet)
 	local fine = 0
 	local TooMuchSpeed = tonumber(kmhSpeed) - tonumber(maxSpeed)
 	if TooMuchSpeed >= 25 and TooMuchSpeed <= 50 then
-		fine =200 + (TooMuchSpeed*Config.KmhFine)
-	elseif TooMuchSpeed > 50 and TooMuchSpeed <= 100 then
-		fine =250 + (TooMuchSpeed*Config.KmhFine)
-	elseif TooMuchSpeed > 100 and TooMuchSpeed <= 125 then
-		fine =300 + (TooMuchSpeed*Config.KmhFine)
-	elseif TooMuchSpeed > 125 and TooMuchSpeed <= 150 then
-		fine =400 + (TooMuchSpeed*Config.KmhFine)
-	elseif TooMuchSpeed > 150 and TooMuchSpeed <= 175 then
-		fine =450 + (TooMuchSpeed*Config.KmhFine)
-	elseif TooMuchSpeed > 175 then
 		fine =500 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 50 and TooMuchSpeed <= 100 then
+		fine =750 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 100 and TooMuchSpeed <= 125 then
+		fine =1000 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 125 and TooMuchSpeed <= 150 then
+		fine =1250 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 150 and TooMuchSpeed <= 175 then
+		fine =1500 + (TooMuchSpeed*Config.KmhFine)
+	elseif TooMuchSpeed > 175 then
+		fine =1750 + (TooMuchSpeed*Config.KmhFine)
 	end
 	if TooMuchSpeed >= 25 then
 		SetTimeout(math.random(Config.MinWaitTimeBeforeGivingFine*1000, Config.MaxWaitTimeBeforeGivingFine*1000), function()
@@ -115,12 +131,19 @@ AddEventHandler('ft_libs:OnClientReady', function()
 		})
 		exports.ft_libs:AddArea("esx_jb_radars_"..k, {
 			trigger = {
-				weight = Config.SpeedCamRange,
+				weight = v.alertradarrange,
 				active = {
 					callback = function()
 						local myPed = GetPlayerPed(-1)
 						local vehicle = GetPlayersLastVehicle()
-						if IsPedInAnyVehicle(myPed, false) then
+						local coords      = GetEntityCoords(myPed)
+						local distance = GetDistanceBetween3DCoords(v.x, v.y, v.z, coords.x, coords.y, coords.z)
+						local ispedinvehicle = IsPedInAnyVehicle(myPed, false)
+						if ispedinvehicle and coyottestate and not inmarker then
+							SendNUIMessage({playsong = 'true', songname= v.maxSpeed})
+							inmarker = true
+						end
+						if ispedinvehicle and distance < Config.SpeedCamRange then
 							if GetPedInVehicleSeat(vehicle, -1) == myPed then
 								if GetVehicleClass(vehicle) ~= 18 then
 								local kmhSpeed = math.ceil(GetEntitySpeed(vehicle)* 3.6)
@@ -141,7 +164,12 @@ AddEventHandler('ft_libs:OnClientReady', function()
 						if highspeed ~= 0 then
 							HandlespeedCam(highspeed, v.maxSpeed, numberPlate, model, street1)
 							highspeed = 0
+							Citizen.Wait(500)
 						end
+						highspeed = 0
+						Citizen.Wait(500)
+						inmarker = false
+						
 					end,
 				},
 			},
@@ -155,6 +183,14 @@ AddEventHandler('ft_libs:OnClientReady', function()
 		})
 	end
 end)
+function GetDistanceBetween3DCoords(x1, y1, z1, x2, y2, z2)
+
+    if x1 ~= nil and y1 ~= nil and z1 ~= nil and x2 ~= nil and y2 ~= nil and z2 ~= nil then
+        return math.sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2 + (z1 - z2) ^ 2)
+    end
+    return -1
+
+end
 
 function dump(o, nb)
   if nb == nil then
