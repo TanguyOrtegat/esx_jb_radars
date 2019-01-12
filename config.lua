@@ -10,7 +10,7 @@ Config.KmhFine 						= 25
 Config.ShowRadarProps 				= true
 Config.MinWaitTimeBeforeGivingFine 	= 30 --in seconds
 Config.MaxWaitTimeBeforeGivingFine 	= 75 --in seconds
-Config.webhook = "https://discordapp.com/api/webhooks/487997918863949833/A80EAJI4bE5b1Y_n9bncN82HOsO-7ulh1IbCjFNODkbmSa7dXDu2i2fk0L9kuQAspyDW" --webhook 
+Config.webhook = "" --webhook 
 
 Config.Radars = {
 	{x = -623.44421386719, y = -823.08361816406, z = 25.25704574585, maxSpeed = 80.0, heading = 145.0, alertradarrange = 90 },
