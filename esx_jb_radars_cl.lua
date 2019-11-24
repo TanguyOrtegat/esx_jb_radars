@@ -140,7 +140,7 @@ AddEventHandler('ft_libs:OnClientReady', function()
 						local distance = GetDistanceBetween3DCoords(v.x, v.y, v.z, coords.x, coords.y, coords.z)
 						local ispedinvehicle = IsPedInAnyVehicle(myPed, false)
 						if ispedinvehicle and coyottestate and not inmarker then
-							SendNUIMessage({playsong = 'true', songname= v.maxSpeed})
+							SendNUIMessage({playsong = 'true', songname= ESX.Math.Round(v.maxSpeed / 10)*10})
 							inmarker = true
 						end
 						if ispedinvehicle and distance < Config.SpeedCamRange then
