@@ -77,7 +77,7 @@ ESX.RegisterUsableItem('coyotte', function(source)
 	if not IsEnabled then
 		IsEnabled  = true
 		TriggerClientEvent('esx_jb_radars:ShowRadarBlip', source)
-		TriggerClientEvent('esx:ShowNotification',source, "Ton coyotte est activé.")
+		TriggerClientEvent('esx:showNotification',source, "Ton coyotte est activé.")
 	else
 		TriggerClientEvent('esx_jb_radars:RemoveRadarBlip', source)
 		TriggerClientEvent('esx:showNotification', source, "Ton coyotte est désactivé.")
