@@ -5,7 +5,7 @@ local jobplates = {}
 
 AddEventHandler('onMySQLReady', function ()
   MySQL.Async.fetchAll(
-	"SELECT name FROM jobs", {},	function(result)
+	"SELECT DISTINCT(name) FROM jobs", {},	function(result)
 		
 	  for k,v in pairs(result) do
 	  local job = string.upper(string.sub(v.name, 0, 4))
