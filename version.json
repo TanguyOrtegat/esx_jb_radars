@@ -1,6 +1,7 @@
 {
-  "version":"2.0.2",
+  "version":"2.0.3",
   "patchnote" : [
-    "- fix typo"
+    "- removed ft_libs dependency",
+    "- optimized the code!"
   ]
 }

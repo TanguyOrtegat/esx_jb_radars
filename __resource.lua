@@ -1,5 +1,4 @@
 description 'Script made by Jager Bom'
-dependency 'ft_libs'
 
 ui_page 'html/ui.html'
 client_script { 

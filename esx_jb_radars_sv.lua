@@ -5,7 +5,7 @@ local jobplates = {}
 
 AddEventHandler('onMySQLReady', function ()
   MySQL.Async.fetchAll(
-	"SELECT DISTINCT(name) FROM jobs", {},	function(result)
+	"SELECT name FROM jobs", {},	function(result)
 		
 	  for k,v in pairs(result) do
 	  local job = string.upper(string.sub(v.name, 0, 4))
@@ -74,13 +74,14 @@ end)
 
 local IsEnabled = false
 ESX.RegisterUsableItem('coyotte', function(source)
+	local _source = source
 	if not IsEnabled then
 		IsEnabled  = true
-		TriggerClientEvent('esx_jb_radars:ShowRadarBlip', source)
-		TriggerClientEvent('esx:showNotification',source, "Ton coyotte est activé.")
+		TriggerClientEvent('esx_jb_radars:ShowRadarBlip', _source)
+		TriggerClientEvent('esx:showNotification',_source, "Ton coyotte est activé.")
 	else
-		TriggerClientEvent('esx_jb_radars:RemoveRadarBlip', source)
-		TriggerClientEvent('esx:showNotification', source, "Ton coyotte est désactivé.")
+		TriggerClientEvent('esx_jb_radars:RemoveRadarBlip', _source)
+		TriggerClientEvent('esx:showNotification', _source, "Ton coyotte est désactivé.")
 		IsEnabled = false
 	end
 end)
